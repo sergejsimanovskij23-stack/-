@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ORBIX — крипто-трейдинг</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0B1A;--sf:#14162B;--sf2:#1B1E3A;--ln:#262A52;--vi:#7C5CFF;--cy:#29D3E6;--up:#22D39A;--dn:#FF5C7A;--tx:#EDEEFF;--mu:#8A8FB8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--tx);font-family:Manrope,system-ui,sans-serif;font-weight:500}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+#app{max-width:480px;margin:0 auto;padding:14px 14px calc(92px + env(safe-area-inset-bottom,0px))}
+h1,h2,.hd{font-family:Unbounded,Manrope,sans-serif;font-weight:700}
+.up{color:var(--up)}.dn{color:var(--dn)}.mu{color:var(--mu)}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:20px;padding:14px;margin-bottom:12px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.logo{display:flex;align-items:center;gap:8px;font-family:Unbounded;font-weight:700;font-size:17px}
+.hero{position:relative;overflow:hidden;border-radius:26px;padding:20px;margin-bottom:14px;background:linear-gradient(135deg,#3A2A9E,#1B1E5C 55%,#0E4A66)}
+.hero svg{position:absolute;right:-30px;top:-20px;opacity:.9}
+.hero .big{font-family:Unbounded;font-size:30px;margin:6px 0 4px;position:relative}
+.hero .mu{color:#C5C8F0;position:relative;font-size:13px}
+.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.act{background:var(--sf);border:1px solid var(--ln);border-radius:16px;padding:12px 4px;text-align:center;font-size:12px;font-weight:700;color:var(--tx)}
+.act i{display:block;font-style:normal;font-size:20px;margin-bottom:4px}
+.row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--ln)}
+.row:last-child{border:0}
+.row .g{flex:1;min-width:0}.row b{display:block;font-size:15px}.row small{color:var(--mu);font-size:12px}
+.r{text-align:right}
+.ic{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff;flex:none;box-shadow:inset 0 -6px 12px rgba(0,0,0,.25),0 4px 14px rgba(0,0,0,.35)}
+.ic svg{width:100%;height:100%}
+.sec{font-family:Unbounded;font-size:15px;margin:18px 2px 10px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--bg) 30%)}
+nav div{display:flex;width:100%;max-width:460px;background:var(--sf2);border:1px solid var(--ln);border-radius:22px;padding:6px}
+nav button{flex:1;background:0;border:0;color:var(--mu);font:700 11px Manrope;padding:8px 0;border-radius:16px}
+nav button i{display:block;font-style:normal;font-size:19px}
+nav button.on{color:#fff;background:linear-gradient(135deg,var(--vi),#5B7CFF)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px}
+.chip{flex:none;display:flex;align-items:center;gap:6px;background:var(--sf);border:1px solid var(--ln);color:var(--tx);border-radius:30px;padding:6px 12px 6px 6px;font:700 13px Manrope}
+.chip .ic{width:24px;height:24px;font-size:12px}
+.chip.on{border-color:var(--vi);background:#241F5C}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--sf);border-radius:14px;padding:4px;margin-bottom:12px}
+.seg button{border:0;background:0;color:var(--mu);font:800 14px Manrope;padding:11px;border-radius:11px}
+.seg .b.on{background:var(--up);color:#032}.seg .s.on{background:var(--dn);color:#fff}
+.inp{width:100%;background:var(--sf);border:1px solid var(--ln);border-radius:14px;color:var(--tx);font:700 20px Manrope;padding:14px;outline:0}
+.inp:focus{border-color:var(--vi)}
+.pcts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.pcts button{background:var(--sf2);border:0;color:var(--tx);border-radius:10px;padding:9px;font:700 13px Manrope}
+.cta{width:100%;border:0;border-radius:16px;padding:16px;font:800 16px Manrope;color:#fff;background:linear-gradient(135deg,var(--vi),var(--cy))}
+.cta.b{background:var(--up);color:#032}.cta.s{background:var(--dn)}
+.claim{border:0;border-radius:12px;padding:9px 14px;font:800 13px Manrope;background:var(--vi);color:#fff}
+.claim:disabled{background:var(--sf2);color:var(--mu)}
+.bar{height:6px;border-radius:6px;background:var(--sf2);margin-top:6px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--vi),var(--cy))}
+canvas{width:100%;height:190px;display:block}
+.av{width:84px;height:84px;border-radius:50%;margin:0 auto 10px;display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--sf);border:1px solid var(--ln);border-radius:16px;padding:12px}
+.stat b{font-family:Unbounded;font-size:16px;display:block;margin-top:4px}
+#toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translate(-50%,-120px);transition:.35s;background:var(--sf2);border:1px solid var(--vi);padding:12px 16px;border-radius:16px;font-weight:700;font-size:14px;z-index:9;max-width:90%;text-align:center}
+#toast.show{transform:translate(-50%,0)}
+@media (prefers-color-scheme:light){:root{}}
+</style></head>
+<body>
+<div id="app"><div style="padding:40px 20px;text-align:center;color:#8A8FB8;font-family:system-ui">Загрузка ORBIX…</div></div>
+<div id="toast"></div>
+<nav><div id="nav"></div></nav>
+<script>
+const $=s=>document.querySelector(s);
+const fmt=(n,d=2)=>n.toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d});
+const pd=p=>p<.001?8:p<1?4:2;
+const C=[
+{s:'BTC',n:'Bitcoin',p:67250,v:.0016,a:'#F7931A',b:'#FFB84D',g:'₿'},
+{s:'ETH',n:'Ethereum',p:3480,v:.002,a:'#5B6CFF',b:'#A7B0FF',g:'Ξ'},
+{s:'BNB',n:'BNB',p:598,v:.0018,a:'#E6A700',b:'#FFD54A',g:'B'},
+{s:'SOL',n:'Solana',p:172,v:.0028,a:'#9945FF',b:'#14F195',g:'◎'},
+{s:'XRP',n:'XRP',p:.62,v:.0024,a:'#1B2A4A',b:'#4A78C2',g:'✕'},
+{s:'TON',n:'Toncoin',p:6.9,v:.0026,a:'#0088CC',b:'#4FD1FF',g:'T'},
+{s:'DOGE',n:'Dogecoin',p:.158,v:.0035,a:'#C9A227',b:'#F5DC7A',g:'Ð'},
+{s:'VOID',n:'VoidCoin',p:1.37,v:.011,a:'#000',b:'#7C5CFF',g:'',n2:1}];
+C.forEach(c=>{c.h=[c.p];for(let i=0;i<59;i++){c.h.unshift(c.h[0]*(1+(Math.random()-.5)*c.v*2))}c.o=c.h[0];c.p=c.h[59]});
+const M=Object.fromEntries(C.map(c=>[c.s,c]));
+let S={cash:100,inv:100,v:2,card:0,pend:[],hist:[],wdn:0,wm:'out',wa:'',cf:'USDT',ct:'BTC',ca:'',hold:{},xp:0,trades:0,done:{},ps:0,bv:0,day:'',streak:0,stk:0,wh:0,name:'Трейдер #'+(1000+Math.floor(Math.random()*9000)),tab:'home',sel:'BTC',side:'b',amt:''};
+try{const l=JSON.parse(localStorage.getItem('orbix')||'null');if(l&&l.v==2)Object.assign(S,l,{tab:'home',amt:''})}catch(e){}
+const save=()=>{try{localStorage.setItem('orbix',JSON.stringify(S))}catch(e){}};
+const tot=()=>S.cash+S.stk+Object.entries(S.hold).reduce((a,[k,h])=>a+h.q*M[k].p,0);
+const chg=c=>(c.p/c.o-1)*100;
+const lvl=()=>Math.floor(S.xp/150)+1;
+function icon(c,sz){const st=sz?`style="width:${sz}px;height:${sz}px"`:'';
+if(c.n2)return `<span class="ic" ${st} style="background:#000;box-shadow:0 0 14px #7C5CFF99;${sz?`width:${sz}px;height:${sz}px`:''}"><svg viewBox="0 0 40 40"><defs><radialGradient id="vg"><stop offset=".45" stop-color="#000"/><stop offset=".6" stop-color="#7C5CFF"/><stop offset="1" stop-color="#29D3E6" stop-opacity="0"/></radialGradient></defs><circle cx="20" cy="20" r="19" fill="url(#vg)"/><ellipse cx="20" cy="20" rx="17" ry="5" fill="none" stroke="#C9B8FF" stroke-width="1.6" transform="rotate(-20 20 20)"/><circle cx="20" cy="20" r="7" fill="#000"/></svg></span>`;
+return `<span class="ic" style="background:linear-gradient(135deg,${c.a},${c.b});${sz?`width:${sz}px;height:${sz}px`:''}">${c.g}</span>`}
+function spark(c){const h=c.h.slice(-30),mn=Math.min(...h),mx=Math.max(...h),r=mx-mn||1;
+const pts=h.map((v,i)=>`${(i/29*70).toFixed(1)},${(26-(v-mn)/r*24).toFixed(1)}`).join(' ');
+return `<svg width="70" height="28"><polyline points="${pts}" fill="none" stroke="${chg(c)>=0?'#22D39A':'#FF5C7A'}" stroke-width="2" stroke-linejoin="round"/></svg>`}
+const pill=c=>{const x=chg(c);return `<span class="${x>=0?'up':'dn'}">${x>=0?'+':''}${fmt(x)}%</span>`};
+function coinRow(c,clk){return `<div class="row" onclick="${clk}"><span>${icon(c)}</span><div class="g"><b>${c.s}</b><small>${c.n}</small></div>${spark(c)}<div class="r" style="min-width:86px"><b>$${fmt(c.p,pd(c.p))}</b><small>${pill(c)}</small></div></div>`}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2600)}
+function addXP(n){const a=lvl();S.xp+=n;if(lvl()>a){toast('🎉 Новый уровень: '+lvl());try{ORBIX_NOTIFY.level(lvl())}catch(e){}}}
+
+const TASKS=[
+{id:1,t:'Первая сделка',d:'Купи или продай любую монету',r:200,p:()=>[Math.min(S.trades,1),1]},
+{id:2,t:'Загляни в бездну',d:'Купи VOIDCOIN',r:500,p:()=>[S.bv?1:0,1]},
+{id:3,t:'Активный трейдер',d:'Соверши 5 сделок',r:300,p:()=>[Math.min(S.trades,5),5]},
+{id:4,t:'Диверсификация',d:'Держи 3 разные монеты',r:400,p:()=>[Math.min(Object.keys(S.hold).length,3),3]},
+{id:5,t:'Фиксируй прибыль',d:'Продай монету дороже, чем купил',r:350,p:()=>[Math.min(S.ps,1),1]},
+{id:6,t:'Крупный игрок',d:'Доведи капитал до $12 000',r:1000,p:()=>[Math.min(Math.floor(tot()),12000),12000]},
+{id:7,t:'Профи рынка',d:'Соверши 20 сделок',r:800,p:()=>[Math.min(S.trades,20),20]},
+{id:8,t:'Пассивный доход',d:'Положи USDT в стейкинг',r:300,p:()=>[S.stk>0?1:0,1]},
+{id:9,t:'Не пропадай',d:'Заходи 3 дня подряд',r:600,p:()=>[Math.min(S.streak,3),3]}];
+function claim(id){const t=TASKS.find(x=>x.id==id);const[a,b]=t.p();if(a<b||S.done[id])return;S.done[id]=1;S.cash+=t.r;addXP(80);toast('+$'+t.r+' за задание «'+t.t+'»');try{ORBIX_NOTIFY.task(t.t,t.r)}catch(e){}save();render()}
+function daily(){const d=new Date().toDateString();if(S.day===d)return;const y=new Date(Date.now()-864e5).toDateString();S.streak=S.day===y?S.streak+1:1;S.day=d;const r=100+((S.streak-1)%7)*50;S.cash+=r;addXP(20);toast('🔥 Серия '+S.streak+' дн. Бонус: +$'+r);save();render()}
+
+const SUB=['tasks','wheel','stake','rank','prof'];
+const BOTS=[['Satoshi_Jr',31200],['WhaleAlert',24800],['MoonBoy',18300],['HODLqueen',15100],['VoidRider',12600],['DiamondHands',10900],['ПампДжо',9300],['Новичок77',7800]].map(([n,c])=>({n,c}));
+function spin(){if(Date.now()-S.wh<144e5)return;S.wh=Date.now();const p=[50,100,150,250,500,1000][Math.floor(Math.random()**2*6)];S.cash+=p;addXP(15);toast('🎡 Колесо: +$'+p);save();render()}
+function stake(){if(S.cash<1)return toast('Нет свободных USDT');S.stk+=S.cash;S.cash=0;toast('Деньги в стейкинге, доход растёт');save();render()}
+function unstake(){S.cash+=S.stk;S.stk=0;save();render()}
+function holdRows(){return Object.entries(S.hold).map(([k,h])=>{const c=M[k],v=h.q*c.p,pl=v-h.cost,pc=pl/h.cost*100,u=pl>=0;return `<div class="row" onclick="pick('${k}')"><span>${icon(c)}</span><div class="g"><b>${fmt(h.q,4)} ${k}</b><small>Куплено по $${fmt(h.cost/h.q,pd(c.p))} · сейчас $${fmt(c.p,pd(c.p))}</small></div><div class="r"><b>$${fmt(v)}</b><small class="${u?'up':'dn'}">${u?'▲ +':'▼ -'}$${fmt(Math.abs(pl))} (${fmt(pc)}%)</small></div></div>`}).join('')}
+function hook(){const rd=Date.now()-S.wh>=144e5,dn=S.day===new Date().toDateString();const[i,t]=rd?['🎡','Бесплатное колесо готово. Крути!']:!dn?['🎁','Забери бонус дня и продли серию']:['🔥','Серия '+S.streak+' дн. Загляни завтра за бонусом больше'];return `<div class="card" onclick="go('wheel')" style="display:flex;gap:12px;align-items:center;border-color:var(--vi)"><span style="font-size:30px">${i}</span><b>${t}</b></div>`}
+function go(t){S.tab=t;render();scrollTo(0,0)}
+function pick(s){S.sel=s;S.tab='trade';S.amt='';render();scrollTo(0,0)}
+function side(x){S.side=x;S.amt='';render()}
+function pct(p){const c=M[S.sel];const mx=S.side=='b'?S.cash:(S.hold[S.sel]?S.hold[S.sel].q*c.p:0);S.amt=String(Math.floor(mx*p/100*100)/100);render()}
+function setAmt(v){S.amt=v;updTrade()}
+function exec(){const c=M[S.sel],a=parseFloat(S.amt);if(!(a>0))return toast('Введи сумму в USDT');
+if(S.side=='b'){if(a>S.cash+.001)return toast('Недостаточно USDT');const q=a*.999/c.p,h=S.hold[c.s]||{q:0,cost:0};h.q+=q;h.cost+=a;S.hold[c.s]=h;S.cash-=a;if(c.s=='VOID')S.bv=1;toast(`Куплено ${fmt(q,4)} ${c.s}`)}
+else{const h=S.hold[c.s];if(!h)return toast('У тебя нет '+c.s);const q=Math.min(h.q,a/c.p),get=q*c.p*.999,cost=h.cost*(q/h.q);if(get>cost)S.ps++;h.q-=q;h.cost-=cost;if(h.q<1e-9)delete S.hold[c.s];S.cash+=get;toast(`Продано ${fmt(q,4)} ${c.s} за $${fmt(get)}`)}
+S.trades++;addXP(10);S.hist.unshift({t:Date.now(),x:(S.side=='b'?'Покупка ':'Продажа ')+c.s+' на $'+fmt(a)});EV.unshift({t:Date.now(),u:ME,s:c.s,b:S.side=='b',q:a/c.p,usd:a});S.amt='';save();render()}
+
+function drawChart(){const cv=$('#cv');if(!cv)return;const c=M[S.sel],dpr=devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;cv.width=w*dpr;cv.height=h*dpr;const x=cv.getContext('2d');x.scale(dpr,dpr);
+const d=c.h,mn=Math.min(...d),mx=Math.max(...d),r=(mx-mn)||1,col=chg(c)>=0?'#22D39A':'#FF5C7A';
+x.strokeStyle='#262A5280';x.lineWidth=1;for(let i=1;i<4;i++){x.beginPath();x.moveTo(0,h*i/4);x.lineTo(w,h*i/4);x.stroke()}
+const X=i=>i/(d.length-1)*(w-4)+2,Y=v=>h-12-(v-mn)/r*(h-30);
+x.beginPath();d.forEach((v,i)=>i?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v)));x.strokeStyle=col;x.lineWidth=2.5;x.lineJoin='round';x.stroke();
+x.lineTo(w,h);x.lineTo(0,h);const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,col+'55');g.addColorStop(1,col+'00');x.fillStyle=g;x.fill();
+x.beginPath();x.arc(X(d.length-1),Y(d[d.length-1]),4,0,7);x.fillStyle=col;x.fill()}
+function updTrade(){const c=M[S.sel];const p=$('#tp');if(!p)return;p.textContent='$'+fmt(c.p,pd(c.p));$('#tc').innerHTML=pill(c);drawChart();
+const a=parseFloat(S.amt)||0;$('#get').textContent=S.side=='b'?`≈ ${fmt(a*.999/c.p,4)} ${c.s}`:`≈ $${fmt(a*.999)} (комиссия 0,1%)`}
+
+const hero=`<svg width="190" height="190" viewBox="0 0 190 190"><defs><radialGradient id="hg"><stop offset="0" stop-color="#29D3E6" stop-opacity=".9"/><stop offset="1" stop-color="#7C5CFF" stop-opacity="0"/></radialGradient></defs><circle cx="105" cy="85" r="80" fill="url(#hg)" opacity=".5"/><ellipse cx="105" cy="85" rx="85" ry="26" fill="none" stroke="#fff" stroke-opacity=".3" transform="rotate(-18 105 85)"/><ellipse cx="105" cy="85" rx="60" ry="18" fill="none" stroke="#fff" stroke-opacity=".4" transform="rotate(-18 105 85)"/><circle cx="105" cy="85" r="26" fill="#05060F"/><circle cx="165" cy="62" r="7" fill="#FFB84D"/></svg>`;
+function avatar(){const h=(S.name.length*47)%360;return `<svg class="av" viewBox="0 0 84 84"><defs><linearGradient id="ag" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(${h},80%,60%)"/><stop offset="1" stop-color="#29D3E6"/></linearGradient></defs><circle cx="42" cy="42" r="42" fill="url(#ag)"/><circle cx="42" cy="34" r="14" fill="#0A0B1A"/><path d="M14 74c4-18 14-22 28-22s24 4 28 22z" fill="#0A0B1A"/></svg>`}
+const ttl=()=>{const l=lvl();return l<3?'Новичок':l<6?'Трейдер':l<10?'Кит':'Легенда рынка'};
+
+function view(){
+const T=tot(),pnl=T-S.inv;
+if(S.tab=='home'){
+const hs=Object.entries(S.hold).map(([k,h])=>{const c=M[k],v=h.q*c.p,pl=v-h.cost;return `<div class="row" onclick="pick('${k}')"><span>${icon(c)}</span><div class="g"><b>${fmt(h.q,4)} ${k}</b><small class="${pl>=0?'up':'dn'}">${pl>=0?'+':''}$${fmt(pl)}</small></div><div class="r"><b>$${fmt(v)}</b></div></div>`}).join('')||'<p class="mu" style="padding:10px 0">Пока пусто. Купи первую монету на вкладке «Торговля».</p>';
+const mv=[...C].sort((a,b)=>Math.abs(chg(b))-Math.abs(chg(a))).slice(0,3).map(c=>coinRow(c,`pick('${c.s}')`)).join('');
+return `<div class="top"><div class="logo"><svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" fill="none" stroke="#7C5CFF" stroke-width="3"/><circle cx="14" cy="14" r="5" fill="#29D3E6"/></svg>ORBIX</div><span class="mu">Ур. ${lvl()} · ${ttl()}</span></div>
+<div class="hero">${hero}<div class="mu">Общий капитал</div><div class="big">$${fmt(T)}</div><div class="mu">Доступно: $${fmt(S.cash)} USDT · <b class="${pnl>=0?'up':'dn'}">${pnl>=0?'+':''}${fmt(pnl)}</b></div></div>
+<div class="acts"><div class="act" onclick="pick('BTC')"><i>📈</i>Торговля</div><div class="act" onclick="pick('VOID')"><i>🕳️</i>VOID</div><div class="act" onclick="go('conv')"><i>🔄</i>Обмен</div><div class="act" onclick="S.wm='out';go('wd')"><i>💳</i>На карту</div></div>
+${hook()}<div class="sec">Мои активы</div><div class="card">${holdRows()||'<p class="mu">Пока пусто. Купи первую монету!</p>'}</div>
+<div class="sec">Самые активные</div><div class="card">${mv}</div>`}
+if(S.tab=='port'){const iv=Object.values(S.hold).reduce((a,h)=>a+h.cost,0),val=T-S.cash-S.stk,pl=val-iv,u=pl>=0;const bar=Object.entries(S.hold).map(([k,h])=>`<i style="width:${h.q*M[k].p/val*100}%;background:${M[k].b}"></i>`).join('');
+return `<div class="top"><h2 class="hd" style="font-size:20px">Портфель</h2><span class="mu">${Object.keys(S.hold).length} монет</span></div><div class="card"><div class="mu">Результат по монетам</div><div class="hd ${u?'up':'dn'}" style="font-size:28px;margin:6px 0">${u?'+':'-'}$${fmt(Math.abs(pl))}</div><div class="mu">Вложено $${fmt(iv)} · сейчас $${fmt(val)}${iv?' · '+(u?'в окупе ':'ниже окупа ')+fmt(pl/iv*100)+'%':''}</div>${val>0?`<div class="bar" style="display:flex;height:10px;margin-top:12px">${bar}</div>`:''}</div><div class="card">${holdRows()||'<p class="mu">Купи первую монету на вкладке «Торговля».</p>'}</div><div class="grid2"><div class="stat"><span class="mu">USDT</span><b>$${fmt(S.cash)}</b></div><div class="stat"><span class="mu">В стейкинге</span><b>$${fmt(S.stk)}</b></div></div>`}
+if(S.tab=='more')return `<div class="top"><h2 class="hd" style="font-size:20px">Ещё</h2></div>`+[['tasks','🎯','Задания','Награды за цели'],['wheel','🎡','Бонусы и колесо','Серия входов и бесплатный спин'],['stake','💎','Стейкинг','Пассивный доход на USDT'],['rank','🏆','Рейтинг','Ты против других трейдеров'],['prof','👤','Профиль','Уровень и статистика']].map(([k,i,t,d])=>`<div class="card" onclick="go('${k}')" style="display:flex;gap:14px;align-items:center"><span style="font-size:30px">${i}</span><div><b>${t}</b><br><small class="mu">${d}</small></div></div>`).join('');
+if(S.tab=='wheel'){const left=Math.max(0,S.wh+144e5-Date.now()),m=Math.ceil(left/6e4),dn=S.day===new Date().toDateString(),cur=S.streak?(S.streak-1)%7+1:0;
+return `<div class="top"><h2 class="hd" style="font-size:20px">Бонусы</h2></div><div class="card"><b>🔥 Серия входов: ${S.streak} дн.</b><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:12px 0">${[1,2,3,4,5,6,7].map(i=>`<div class="stat" style="padding:8px 2px;text-align:center;${i<=cur?'border-color:var(--up)':''}"><small class="mu">${i}</small><b style="font-size:11px">$${100+(i-1)*50}</b></div>`).join('')}</div><button class="cta" ${dn?'disabled style="opacity:.5"':''} onclick="daily()">${dn?'Сегодня получено':'Забрать бонус дня'}</button></div><div class="card" style="text-align:center"><div style="width:150px;height:150px;border-radius:50%;margin:6px auto 14px;border:6px solid var(--sf2);background:conic-gradient(#7C5CFF 0 16%,#29D3E6 0 33%,#22D39A 0 50%,#FFB84D 0 66%,#FF5C7A 0 83%,#C9B8FF 0)"></div><button class="cta" ${left?'disabled style="opacity:.5"':''} onclick="spin()">${left?`Следующий спин через ${Math.floor(m/60)} ч ${m%60} мин`:'Крутить колесо бесплатно'}</button><small class="mu" style="display:block;margin-top:8px">Приз от $50 до $1000, спин раз в 4 часа</small></div>`}
+if(S.tab=='stake')return `<div class="top"><h2 class="hd" style="font-size:20px">Стейкинг USDT</h2></div><div class="hero"><div class="mu">В стейкинге</div><div class="big">$${fmt(S.stk,4)}</div><div class="mu">Доходность ≈ +4,9% в час. Растёт, даже пока ты не торгуешь</div></div><button class="cta" onclick="stake()">Внести все USDT ($${fmt(S.cash)})</button><button class="cta" style="margin-top:10px;background:var(--sf2)" onclick="unstake()">Забрать всё</button>`;
+if(S.tab=='rank'){const L=[...BOTS,{n:S.name,c:T,me:1}].sort((a,b)=>b.c-a.c),i=L.findIndex(x=>x.me);
+return `<div class="top"><h2 class="hd" style="font-size:20px">Рейтинг</h2><span class="mu">Твоё место: ${i+1}</span></div>`+(i?`<div class="card" style="border-color:var(--vi)">До места ${i} осталось <b>$${fmt(L[i-1].c-T)}</b> 🚀</div>`:'<div class="card">Ты на первом месте 👑</div>')+`<div class="card">${L.map((x,j)=>`<div class="row" style="${x.me?'background:#241F5C;border-radius:12px;padding-left:8px':''}"><b style="width:26px">${j+1}</b><div class="g"><b>${x.n}</b></div><b>$${fmt(x.c,0)}</b></div>`).join('')}</div>`}
+if(S.tab=='market')return `<div class="top"><h2 class="hd" style="font-size:20px">Рынок</h2><span class="mu">8 монет</span></div><div class="card" style="border-color:#7C5CFF">${coinRow(M.VOID,"pick('VOID')")}<small class="mu">Новая монета. Растёт и падает резко: большой риск, большой профит.</small></div><div class="card">${C.filter(c=>c.s!='VOID').map(c=>coinRow(c,`pick('${c.s}')`)).join('')}</div>`;
+if(S.tab=='trade'){const c=M[S.sel],h=S.hold[c.s],a=parseFloat(S.amt)||0;
+return `<div class="chips">${C.map(x=>`<button class="chip ${x.s==S.sel?'on':''}" onclick="pick('${x.s}')">${icon(x,24)}${x.s}</button>`).join('')}</div>
+<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><div><div class="mu">${c.n}</div><div class="hd" style="font-size:26px" id="tp">$${fmt(c.p,pd(c.p))}</div></div><div id="tc" style="font-weight:800;font-size:16px">${pill(c)}</div></div><canvas id="cv"></canvas></div>
+${h?`<div class="card" style="padding:10px 14px">Твоя позиция: куплено по $${fmt(h.cost/h.q,pd(c.p))} · <b class="${c.p*h.q>=h.cost?'up':'dn'}">${c.p*h.q>=h.cost?'+':'-'}$${fmt(Math.abs(c.p*h.q-h.cost))}</b></div>`:''}<div class="seg"><button class="b ${S.side=='b'?'on':''}" onclick="side('b')">Купить</button><button class="s ${S.side=='s'?'on':''}" onclick="side('s')">Продать</button></div>
+<input class="inp" id="in" type="number" inputmode="decimal" placeholder="Сумма в USDT" value="${S.amt}" oninput="setAmt(this.value)">
+<div class="pcts">${[25,50,75,100].map(p=>`<button onclick="pct(${p})">${p}%</button>`).join('')}</div>
+<div class="mu" style="display:flex;justify-content:space-between;margin-bottom:12px"><span>${S.side=='b'?'Доступно: $'+fmt(S.cash):'У тебя: '+fmt(h?h.q:0,4)+' '+c.s}</span><span id="get">${S.side=='b'?`≈ ${fmt(a*.999/c.p,4)} ${c.s}`:`≈ $${fmt(a*.999)} (комиссия 0,1%)`}</span></div>
+<button class="cta ${S.side}" onclick="exec()">${S.side=='b'?'Купить':'Продать'} ${c.s}</button>`}
+if(S.tab=='tasks'){const dn=S.day===new Date().toDateString();
+return `<div class="top"><h2 class="hd" style="font-size:20px">Задания</h2><span class="mu">Баланс $${fmt(S.cash)}</span></div>
+<div class="card" style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#2D2380,#14162B)"><span style="font-size:34px">🎁</span><div class="g" style="flex:1"><b>Ежедневный бонус</b><br><small class="mu">+$100 раз в день</small></div><button class="claim" ${dn?'disabled':''} onclick="daily()">${dn?'Получено':'Забрать'}</button></div>`+
+TASKS.map(t=>{const[a,b]=t.p(),ok=a>=b,dn=S.done[t.id];return `<div class="card"><div style="display:flex;align-items:center;gap:12px"><div style="flex:1"><b>${t.t}</b><br><small class="mu">${t.d}</small></div><button class="claim" ${!ok||dn?'disabled':''} onclick="claim(${t.id})">${dn?'✓':'+$'+t.r}</button></div><div class="bar"><i style="width:${a/b*100}%"></i></div></div>`}).join('')}
+const xp=S.xp%150;
+return `${avatar()}<div style="text-align:center;margin-bottom:16px"><h2 class="hd" style="font-size:19px">${S.name}</h2><div class="mu">Уровень ${lvl()} · ${ttl()}</div><div class="bar" style="max-width:220px;margin:10px auto 0"><i style="width:${xp/150*100}%"></i></div></div>
+<div class="grid2"><div class="stat"><span class="mu">Капитал</span><b>$${fmt(T,0)}</b></div><div class="stat"><span class="mu">Прибыль</span><b class="${pnl>=0?'up':'dn'}">${pnl>=0?'+':''}${fmt(pnl,0)}</b></div><div class="stat"><span class="mu">Сделок</span><b>${S.trades}</b></div><div class="stat"><span class="mu">Заданий</span><b>${Object.keys(S.done).length}/${TASKS.length}</b></div></div>
+<div class="sec">Кошелёк</div><div class="card"><div class="row"><span class="ic" style="background:linear-gradient(135deg,#26A17B,#6EE7B7)">₮</span><div class="g"><b>USDT</b><small>Доступно для торговли</small></div><b>$${fmt(S.cash)}</b></div></div>
+<button class="cta" style="background:var(--sf2);color:var(--dn)" onclick="if(confirm('Сбросить прогресс и начать заново?')){try{localStorage.removeItem('orbix')}catch(e){};location.reload()}">Начать заново</button>`}
+
+function render(){$('#app').innerHTML=(SUB.includes(S.tab)?'<button class="claim" style="margin-bottom:12px;background:var(--sf2)" onclick="go(\'more\')">← Назад</button>':'')+view();
+$('#nav').innerHTML=[['home','🏠','Главная'],['market','📊','Рынок'],['trade','⚡','Торговля'],['port','💼','Кошелёк'],['prof','👤','Профиль']].map(([k,i,n])=>`<button class="${S.tab==k||(k=='more'&&SUB.includes(S.tab))?'on':''}" onclick="go('${k}')"><i>${i}</i>${n}</button>`).join('');
+if(S.tab=='trade')drawChart()}
+
+const news={up:['Киты скупают VOIDCOIN! 🚀','VOID попал в листинг — памп!'],dn:['Крупный holder слил VOID 📉','Паника на рынке VOID: резкий дамп']};
+let mood=0;
+setInterval(()=>{mood=mood*.95+(Math.random()-.5)*.0016;
+C.forEach(c=>{let m=(Math.random()-.5)*c.v*2+mood*(c.s=='VOID'?2:1)+(c.p<c.o*.7?.002:c.p>c.o*1.5?-.002:0);c.p=Math.max(c.p*(1+m),.000001);c.h.push(c.p);if(c.h.length>60)c.h.shift()});
+if(Math.random()<.025){const u=Math.random()<.5,k=u?1.12:.88;M.VOID.p*=k;M.VOID.h[M.VOID.h.length-1]=M.VOID.p;toast((u?news.up:news.dn)[Math.floor(Math.random()*2)])}
+proc();S.stk*=1.00002;BOTS.forEach(b=>b.c*=1+(Math.random()-.5)*.004);save();if(S.tab=='trade')updTrade();else if(!['INPUT','SELECT'].includes((document.activeElement||{}).tagName))render()},1500);
+SUB.length=0;SUB.push('tasks','conv','wd');
+hook=()=>'';
+TASKS.length=0;TASKS.push(
+{id:1,t:'Первая сделка',d:'Купи или продай любую монету',r:1,p:()=>[Math.min(S.trades,1),1]},
+{id:2,t:'Новая монета',d:'Купи VOIDCOIN',r:2,p:()=>[S.bv?1:0,1]},
+{id:3,t:'Активный трейдер',d:'Соверши 5 сделок',r:3,p:()=>[Math.min(S.trades,5),5]},
+{id:4,t:'Диверсификация',d:'Держи 3 разные монеты',r:3,p:()=>[Math.min(Object.keys(S.hold).length,3),3]},
+{id:5,t:'Фиксация прибыли',d:'Продай монету дороже, чем купил',r:2,p:()=>[Math.min(S.ps,1),1]},
+{id:6,t:'Первый вывод',d:'Выведи деньги на карту',r:5,p:()=>[Math.min(S.wdn,1),1]},
+{id:7,t:'Рост капитала',d:'Доведи капитал до $150',r:10,p:()=>[Math.min(Math.floor(tot()),150),150]});
+const A=['USDT',...C.map(c=>c.s)];
+const px=s=>s=='USDT'?1:M[s].p;
+const bal=s=>s=='USDT'?S.cash:(S.hold[s]?S.hold[s].q:0);
+const cn=()=>1000+(S.name.length*731)%9000;
+const cg=()=>(parseFloat(S.ca)||0)*px(S.cf)*.999/px(S.ct);
+const wc=()=>{const a=parseFloat(S.wa)||0,f=S.wm=='out'?Math.max(.5,a*.01):0;return[f,Math.max(0,a-f)]};
+function take(s,q){if(s=='USDT'){S.cash-=q;return}const h=S.hold[s],cost=h.cost*Math.min(1,q/h.q);if(q*M[s].p>cost)S.ps++;h.q-=q;h.cost-=cost;if(h.q<1e-9)delete S.hold[s]}
+function give(s,q,c){if(s=='USDT'){S.cash+=q;return}const h=S.hold[s]||{q:0,cost:0};h.q+=q;h.cost+=c;S.hold[s]=h}
+function doConv(){const f=S.cf,t=S.ct,a=parseFloat(S.ca);if(f==t)return toast('Выбери разные валюты');if(!(a>0))return toast('Введи количество');if(a>bal(f)+1e-9)return toast('Недостаточно '+f);
+const g=cg();give(t,g,a*px(f));take(f,a);if(t=='VOID')S.bv=1;S.trades++;S.hist.unshift({t:Date.now(),x:`Обмен ${fmt(a,4)} ${f} → ${fmt(g,4)} ${t}`});S.ca='';toast('Обмен выполнен');save();render()}
+function sendT(){const a=parseFloat(S.wa),o=S.wm=='out';if(!(a>=1))return toast('Минимум $1');const[f,r]=wc();
+if(o){if(a>S.cash+1e-9)return toast('Недостаточно USDT на бирже');if(r<=0)return toast('Сумма меньше комиссии');S.cash-=a;S.inv-=a;S.wdn++;S.pend.push({k:'out',a,g:r,t0:Date.now(),d:45})}
+else{if(a>S.card+1e-9)return toast('Недостаточно средств на карте');S.card-=a;S.pend.push({k:'in',a,g:a,t0:Date.now(),d:30})}
+S.wa='';toast('Перевод создан. Ожидай зачисления');try{if(o)ORBIX_NOTIFY.withdraw(a)}catch(e){}save();render()}
+function proc(){const n=Date.now();const l=S.pend.length;S.pend=S.pend.filter(p=>{if(n<p.t0+p.d*1e3)return true;if(p.k=='out')S.card+=p.g;else{S.cash+=p.g;S.inv+=p.g}S.hist.unshift({t:n,x:(p.k=='out'?'Получено на карту $':'Зачислено на биржу $')+fmt(p.g)});toast(p.k=='out'?'💳 Деньги пришли на карту: $'+fmt(p.g):'✅ Зачислено на биржу: $'+fmt(p.g));try{if(p.k=='out')ORBIX_NOTIFY.deposit(p.g);else ORBIX_NOTIFY.deposit(p.g)}catch(e){}return false});if(S.pend.length!=l)save()}
+function pv(){const e=$('#pv');if(e)e.textContent='≈ '+fmt(cg(),6)+' '+S.ct}
+function pv2(){const[f,r]=wc();$('#fee').textContent='$'+fmt(f);$('#rc').textContent='$'+fmt(r)}
+const pendH=()=>S.pend.length?`<div class="sec">В обработке</div>`+S.pend.map(p=>{const l=Math.max(0,Math.ceil((p.t0+p.d*1e3-Date.now())/1e3));return `<div class="card"><div style="display:flex;justify-content:space-between"><b>${p.k=='out'?'Вывод на карту':'Пополнение с карты'}</b><b>$${fmt(p.a)}</b></div><small class="mu">Ожидает зачисления · осталось ${l} сек</small><div class="bar"><i style="width:${(1-l/p.d)*100}%"></i></div></div>`}).join(''):'';
+const histH=()=>S.hist.length?`<div class="sec">История операций</div><div class="card">${S.hist.slice(0,12).map(h=>`<div class="row"><div class="g"><b style="font-size:14px">${h.x}</b><small>${new Date(h.t).toLocaleString('ru-RU')}</small></div></div>`).join('')}</div>`:'';
+const cardH=()=>`<div class="hero" style="background:linear-gradient(135deg,#0F172A,#4338CA 60%,#06B6D4);min-height:175px"><div style="display:flex;justify-content:space-between;position:relative"><b class="hd" style="font-size:14px">ORBIX Card</b><b style="font-style:italic;font-size:18px">VISA</b></div><div class="mu" style="margin-top:20px">Баланс карты · +10% каждую минуту</div><div class="big" style="margin:2px 0 14px">$${fmt(S.card)}</div><div style="position:relative;letter-spacing:2px;font-weight:700;font-size:14px">4276 •••• •••• ${cn()}</div><div class="mu" style="font-size:12px;margin-top:4px">${S.name}</div></div>`;
+const opt=v=>A.map(s=>`<option ${s==v?'selected':''}>${s}</option>`).join('');
+const convV=()=>`<div class="top"><h2 class="hd" style="font-size:20px">Обмен</h2><span class="mu">Комиссия 0,1%</span></div>
+<div class="card"><div class="mu">Отдаёшь · доступно ${fmt(bal(S.cf),4)} ${S.cf}</div><div style="display:flex;gap:8px;margin-top:8px"><input class="inp" style="font-size:18px" type="number" inputmode="decimal" placeholder="0.00" value="${S.ca}" oninput="S.ca=this.value;pv()"><select class="inp" style="width:110px;font-size:16px" onchange="S.cf=this.value;S.ca='';render()">${opt(S.cf)}</select></div><button class="claim" style="margin-top:10px" onclick="S.ca=String(Math.floor(bal(S.cf)*1e6)/1e6);render()">Макс</button></div>
+<div style="text-align:center;margin:-4px 0 8px"><button class="claim" style="font-size:18px" onclick="[S.cf,S.ct]=[S.ct,S.cf];S.ca='';render()">⇅</button></div>
+<div class="card"><div class="mu">Получаешь</div><div style="display:flex;gap:8px;margin-top:8px;align-items:center"><b id="pv" style="flex:1;font-size:18px">≈ ${fmt(cg(),6)} ${S.ct}</b><select class="inp" style="width:110px;font-size:16px" onchange="S.ct=this.value;render()">${opt(S.ct)}</select></div></div>
+<div class="mu" style="text-align:center;margin:12px 0">Курс: 1 ${S.cf} ≈ ${fmt(px(S.cf)/px(S.ct),6)} ${S.ct}</div><button class="cta" onclick="doConv()">Обменять</button>${histH()}`;
+const wdV=()=>{const o=S.wm=='out',[f,r]=wc();return `<div class="top"><h2 class="hd" style="font-size:20px">Переводы</h2></div><div class="seg"><button class="b ${o?'on':''}" onclick="S.wm='out';S.wa='';render()">На карту</button><button class="b ${o?'':'on'}" onclick="S.wm='in';S.wa='';render()">С карты</button></div>
+<div class="card"><div class="mu">${o?'Доступно на бирже':'Баланс карты'}: <b>$${fmt(o?S.cash:S.card)}</b></div><input class="inp" style="margin-top:10px" type="number" inputmode="decimal" placeholder="Сумма, USDT" value="${S.wa}" oninput="S.wa=this.value;pv2()"><div class="mu" style="margin-top:12px;line-height:1.8">${o?'Куда: карта •••• '+cn():'Куда: биржевой кошелёк'}<br>Комиссия: <b id="fee">$${fmt(f)}</b>${o?' (1%, мин. $0,50)':' (бесплатно)'}<br>Получишь: <b id="rc">$${fmt(r)}</b><br>Срок зачисления: ≈ ${o?45:30} сек</div></div><button class="cta" onclick="sendT()">${o?'Вывести на карту':'Пополнить биржу'}</button>${pendH()}${histH()}`};
+const tasksV=()=>`<div class="top"><h2 class="hd" style="font-size:20px">Задания</h2><span class="mu">Баланс $${fmt(S.cash)}</span></div>`+TASKS.map(t=>{const[a,b]=t.p(),ok=a>=b,dn=S.done[t.id];return `<div class="card"><div style="display:flex;align-items:center;gap:12px"><div style="flex:1"><b>${t.t}</b><br><small class="mu">${t.d}</small></div><button class="claim" ${!ok||dn?'disabled':''} onclick="claim(${t.id})">${dn?'✓':'+$'+t.r}</button></div><div class="bar"><i style="width:${a/b*100}%"></i></div></div>`}).join('');
+const profV=()=>{const T=tot(),pl=T-S.inv;return `${avatar()}<div style="text-align:center;margin-bottom:16px"><h2 class="hd" style="font-size:19px">${S.name}</h2><div class="mu">UID 48${cn()}27 · Верификация: уровень 1</div></div>${cardH()}
+<div class="acts" style="grid-template-columns:repeat(3,1fr)"><div class="act" onclick="S.wm='out';go('wd')"><i>⬆️</i>На карту</div><div class="act" onclick="S.wm='in';go('wd')"><i>⬇️</i>С карты</div><div class="act" onclick="go('tasks')"><i>🎯</i>Задания</div></div>
+<div class="grid2"><div class="stat"><span class="mu">Капитал на бирже</span><b>$${fmt(T)}</b></div><div class="stat"><span class="mu">Результат</span><b class="${pl>=0?'up':'dn'}">${pl>=0?'+':'-'}$${fmt(Math.abs(pl))}</b></div><div class="stat"><span class="mu">Сделок</span><b>${S.trades}</b></div><div class="stat"><span class="mu">Заданий</span><b>${Object.keys(S.done).length}/${TASKS.length}</b></div></div>${pendH()}${histH()}
+
+<div class="sec">Уведомления</div>
+<div class="card" id="nsCard">${(function(){
+  const N=window.ORBIX_NOTIFY; if(!N)return '<p class="mu">Модуль уведомлений не загружен</p>';
+  const items=[
+    ['trade','Мои сделки','Покупка и продажа монет'],
+    ['bigTrade','Сделки игроков','Крупные сделки других в сети'],
+    ['transfer','Переводы','Входящие и исходящие USDT'],
+    ['card','Доход по карте','+10% каждую минуту'],
+    ['wallet','Карта / вывод','Вывод и зачисление на карту'],
+    ['online','Сеть','Вход в онлайн и статус'],
+    ['level','Уровни','Новый уровень'],
+    ['task','Задания','Награды за задания'],
+    ['toast','Тосты в приложении','Всплывающие сообщения на экране']
+  ];
+  return items.map(([k,t,d])=>{
+    const on=N.get(k);
+    return `<div class="row" style="padding:10px 0;cursor:pointer" onclick="ORBIX_NOTIFY.set('${k}',!ORBIX_NOTIFY.get('${k}'));render()">
+      <div class="g"><b style="font-size:14px">${t}</b><small>${d}</small></div>
+      <div style="width:48px;height:28px;border-radius:14px;background:${on?'linear-gradient(135deg,var(--vi),var(--cy))':'var(--sf2)'};border:1px solid ${on?'transparent':'var(--ln)'};position:relative;flex:none;transition:.2s">
+        <i style="position:absolute;top:3px;left:${on?'22px':'3px'};width:20px;height:20px;border-radius:50%;background:#fff;display:block;transition:.2s;box-shadow:0 1px 4px #0005"></i>
+      </div>
+    </div>`;
+  }).join('');
+})()}</div>
+<button class="cta" style="margin-top:16px;background:var(--sf2);color:var(--dn)" onclick="if(confirm('Сбросить аккаунт и начать заново?')){try{localStorage.removeItem('orbix');localStorage.removeItem('orbix_ns')}catch(e){};location.reload()}">Начать заново</button>`};
+const _v=view;
+view=function(){if(S.tab=='more')S.tab='port';const t=S.tab;
+if(t=='port')return `<div class="acts" style="grid-template-columns:repeat(3,1fr)"><div class="act" onclick="go('conv')"><i>🔄</i>Обмен</div><div class="act" onclick="S.wm='out';go('wd')"><i>⬆️</i>На карту</div><div class="act" onclick="S.wm='in';go('wd')"><i>⬇️</i>С карты</div></div>`+_v()+pendH()+histH();
+if(t=='conv')return convV();if(t=='wd')return wdV();if(t=='prof')return profV();if(t=='tasks')return tasksV();return _v()};
+proc();
+[['ADA','Cardano',.45,.0028,'#0033AD','#4A8CFF','A'],['AVAX','Avalanche',36,.003,'#E84142','#FF9A9A','A'],['LINK','Chainlink',15.2,.003,'#2A5ADA','#7FA3FF','⬡'],['DOT','Polkadot',7.1,.0028,'#E6007A','#FF7AC0','●'],['LTC','Litecoin',84,.0022,'#345D9D','#9CC0F5','Ł'],['TRX','TRON',.13,.002,'#EF0027','#FF8095','T'],['SHIB','Shiba Inu',.0000245,.0042,'#FFA409','#E42C00','S'],['PEPE','Pepe',.0000118,.0055,'#2F8F3A','#9BE15D','P'],['NEAR','NEAR',5.4,.0034,'#111','#666','N'],['ARB','Arbitrum',1.05,.0036,'#213147','#28A0F0','A'],['SUI','Sui',1.8,.0038,'#4DA2FF','#B3D9FF','S'],['APT','Aptos',8.9,.0034,'#00C2A8','#7FF0DD','A']].forEach(([s,n,p,v,a,b,g])=>{const c={s,n,p,v,a,b,g};c.h=[p];for(let i=0;i<59;i++)c.h.unshift(c.h[0]*(1+(Math.random()-.5)*v*2));c.o=c.h[0];c.p=c.h[59];C.push(c);M[s]=c;A.push(s)});
+SUB.push('send','user','traders','feed');
+S.to='';S.sa='';S.q='';
+const hs=n=>{let h=7;for(const c of n)h=(h*31+c.charCodeAt(0))>>>0;return h};
+const SH=['<circle cx="20" cy="20" r="9"/>','<path d="M23 6 12 22h7l-2 12 11-17h-7z"/>','<polygon points="20,6 24,16 35,16 26,23 29,34 20,27 11,34 14,23 5,16 16,16"/>','<polygon points="20,5 33,20 20,35 7,20"/>','<circle cx="20" cy="20" r="10" fill="none" stroke="#fff" stroke-width="4"/>','<polygon points="20,7 34,32 6,32"/>'];
+const av=(n,z=40)=>{const h=hs(n);return `<span style="display:inline-flex;flex:none;width:${z}px;height:${z}px;border-radius:50%;background:linear-gradient(135deg,hsl(${h%360},75%,58%),hsl(${(h>>3)%360},70%,40%))"><svg viewBox="0 0 40 40" width="${z}" height="${z}" fill="#fff" fill-opacity=".92">${SH[h%6]}</svg></span>`};
+const FL=['🇺🇸','🇷🇺','🇩🇪','🇰🇿','🇯🇵','🇧🇷','🇹🇷','🇦🇪','🇺🇦','🇮🇳','🇰🇷','🇬🇧'];
+const U=['CryptoWolf','SatoshiJr','WhaleAlert','MoonBoy','HODLqueen','VoidRider','DiamondHands','ПампДжо','TraderMax','LunaFox','BitBaron','NeonKid','ЗолотойБык','OnChainOwl','AlphaSeeker','DegenDima','SolanaSam','EtherElf','Кристина_BTC','RocketRay','IceBear','ShibaKing','ТихийТрейдер','Void_Whale'].map(n=>{const h=hs(n);return{n,id:10000000+h%89999999,lv:1+h%9,pnl:(h%1400)/10-20,fol:h%5000,fl:FL[h%12],reg:2020+h%6,wr:45+h%30}});
+const ME={n:S.name};let ONL=12480;const EV=[];
+function genEv(t){const u=U[Math.floor(Math.random()*U.length)],c=Math.random()<.22?M.VOID:C[Math.floor(Math.random()*C.length)],b=Math.random()<.52,usd=Math.exp(Math.random()*5.5+2.5);EV.unshift({t,u,s:c.s,b,q:usd/c.p,usd});return[c,b,usd]}
+for(let i=0;i<80;i++)genEv(Date.now()-i*17000);EV.sort((a,b)=>b.t-a.t);
+const tm=t=>new Date(t).toLocaleTimeString('ru-RU');
+const evRow=e=>`<div class="row" style="padding:8px 0" onclick="openU('${e.u.n}')"><span>${av(e.u.n,34)}</span><div class="g"><b style="font-size:14px">${e.u.n}${e.u.fl||''}</b><small>${tm(e.t)}</small></div><div class="r"><b class="${e.b?'up':'dn'}" style="font-size:13px">${e.b?'Купил':'Продал'} ${fmt(e.q,e.q<1?4:2)} ${e.s}</b><small>$${fmt(e.usd)}</small></div></div>`;
+const feedRows=(s,n=15)=>EV.filter(e=>!s||e.s==s).slice(0,n).map(evRow).join('')||'<p class="mu">Пока нет сделок</p>';
+function openU(n){if(n==S.name)return go('prof');S.pu=n;go('user')}
+function obH(c){const r=(i,k)=>{const p=c.p*(1+k*i*.0006),z=(Math.random()*4000+200)/c.p,w=Math.random()*80+10,col=k>0?'255,92,122':'34,211,154';return `<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 4px;background:linear-gradient(to left,rgba(${col},.22) ${w}%,transparent ${w}%)"><span class="${k>0?'dn':'up'}">${fmt(p,pd(p))}</span><span>${fmt(z,z<10?3:1)}</span></div>`};let a='',b='';for(let i=5;i>0;i--)a+=r(i,1);for(let i=1;i<6;i++)b+=r(i,-1);return a+`<div class="hd" style="text-align:center;padding:6px;font-size:16px">${fmt(c.p,pd(c.p))}</div>`+b}
+setInterval(()=>{
+const o=$('#ob');if(o&&M[S.sel])o.innerHTML=obH(M[S.sel]);
+const f=$('#feed');
+if(f&&window.realFeedHTML){
+  const filt=S.tab=='trade'?S.sel:null;
+  const n=S.tab=='home'?8:S.tab=='trade'?15:40;
+  f.innerHTML=realFeedHTML(filt,n);
+}
+document.querySelectorAll('.onl').forEach(e=>{e.textContent=String((window.ORBIX_ONLINE&&ORBIX_ONLINE.count)?ORBIX_ONLINE.count():0)});
+},1500);
+function selU(n){S.to=n;render()}
+function doSend(){const a=parseFloat(S.sa),u=U.find(x=>x.n==S.to);if(!u)return toast('Выбери получателя');if(!(a>=1))return toast('Минимум $1');if(a>S.cash+1e-9)return toast('Недостаточно USDT');if(!confirm(`Отправить $${fmt(a)} пользователю ${u.n}?`))return;S.cash-=a;S.inv-=a;S.hist.unshift({t:Date.now(),x:`Перевод $${fmt(a)} → ${u.n}`});S.sa='';toast('✅ Перевод выполнен мгновенно');save();render()}
+const ulist=()=>U.filter(u=>!S.q||(u.n+u.id).toLowerCase().includes(S.q.toLowerCase())).slice(0,6).map(u=>`<div class="row" style="${S.to==u.n?'background:#241F5C;border-radius:12px;padding-left:8px':''}" onclick="selU('${u.n}')">${av(u.n,38)}<div class="g"><b>${u.n} ${u.fl}</b><small>UID ${u.id}</small></div></div>`).join('')||'<p class="mu">Никого не найдено</p>';
+const sendV=()=>{
+const realList=(ORBIX_ONLINE&&ORBIX_ONLINE.list?ORBIX_ONLINE.list():[]).filter(u=>u.id!==ORBIX_ONLINE.myId&&(!S.q||(u.n+u.id).toLowerCase().includes((S.q||'').toLowerCase()))).slice(0,20);
+const listHtml=realList.length?realList.map(u=>`<div class="row" style="${S.toId===u.id?'background:#241F5C;border-radius:12px;padding-left:8px':''}" onclick="S.toId='${u.id}';S.to='${String(u.n).replace(/'/g,"\\'")}';render()">${av(u.n,38)}<div class="g"><b>${u.n} ${u.fl||''}</b><small class="up">● онлайн · $${fmt(u.c,0)}</small></div></div>`).join(''):'<p class="mu">Пока никого нет онлайн. Открой эту страницу с другого устройства или позови друга.</p>';
+return `<div class="top"><h2 class="hd" style="font-size:20px">Перевод</h2><span class="mu">Доступно $${fmt(S.cash)}</span></div>
+<div class="card"><input class="inp" style="font-size:16px" placeholder="Поиск игрока онлайн" value="${S.q||''}" oninput="S.q=this.value;render()"><div id="ul" style="margin-top:8px">${listHtml}</div></div>
+<div class="card"><input class="inp" type="number" inputmode="decimal" placeholder="Сумма, USDT" value="${S.sa||''}" oninput="S.sa=this.value"><div class="mu" style="margin-top:10px">Реальный перевод по сети · мгновенно, без комиссии</div></div>
+<button class="cta" onclick="ORBIX_ONLINE.sendMoney(S.toId,S.to,S.sa)">Отправить${S.to?' → '+S.to:''}</button>`};
+const userV=()=>{const u=U.find(x=>x.n==S.pu)||U[0];const ev=EV.filter(e=>e.u.n==u.n).slice(0,6);return `<div style="text-align:center;margin:6px 0 16px">${av(u.n,84)}<h2 class="hd" style="font-size:19px;margin-top:10px">${u.n} ${u.fl}</h2><div class="mu">UID ${u.id} · Ур. ${u.lv} · с ${u.reg} г.</div></div><div class="grid2"><div class="stat"><span class="mu">Результат 30 дн.</span><b class="${u.pnl>=0?'up':'dn'}">${u.pnl>=0?'+':''}${fmt(u.pnl,1)}%</b></div><div class="stat"><span class="mu">Win rate</span><b>${u.wr}%</b></div><div class="stat"><span class="mu">Подписчики</span><b>${fmt(u.fol,0)}</b></div><div class="stat"><span class="mu">Статус</span><b class="up" style="font-size:13px">● онлайн</b></div></div><button class="cta" style="margin:14px 0" onclick="S.to='${u.n}';go('send')">Перевести деньги</button><div class="sec">Последние сделки</div><div class="card">${ev.map(evRow).join('')||'<p class="mu">Нет свежих сделок</p>'}</div>`};
+const tradersV=()=>`<div class="top"><h2 class="hd" style="font-size:20px">Игроки онлайн</h2><span class="mu">${(ORBIX_ONLINE&&ORBIX_ONLINE.count)?ORBIX_ONLINE.count():0}</span></div>${window.realTradersHTML?realTradersHTML():'<div class="card"><p class="mu">Подключение к сети…</p></div>'}`;
+const homeX=()=>{const g=Math.max(5,Math.min(95,50+C.reduce((a,c)=>a+chg(c),0)/C.length*12)),lb=g<25?'Сильный страх':g<45?'Страх':g<55?'Нейтрально':g<75?'Жадность':'Сильная жадность',s=[...C].sort((a,b)=>chg(b)-chg(a)),rw=a=>a.map(c=>coinRow(c,`pick('${c.s}')`)).join('');
+const oc=(window.ORBIX_ONLINE&&ORBIX_ONLINE.count)?(ORBIX_ONLINE.count()||0):0;
+const on=window.ORBIX_ONLINE&&ORBIX_ONLINE.isOn&&ORBIX_ONLINE.isOn();
+return `<div class="card" style="border-color:var(--vi)">
+<div style="display:flex;justify-content:space-between;align-items:center"><b>${on?'🟢 Онлайн':'🔄 Подключение…'}</b><span class="mu">игроков: <span class="onl">${oc}</span></span></div>
+<small class="mu" style="display:block;margin-top:6px">Реальная сеть · переводы и сделки видны всем</small>
+</div>
+<div class="acts"><div class="act" onclick="go('send')"><i>💸</i>Перевод</div><div class="act" onclick="go('traders')"><i>🏆</i>Игроки</div><div class="act" onclick="go('feed')"><i>📡</i>Лента</div><div class="act" onclick="go('tasks')"><i>🎯</i>Задания</div></div>
+<div class="card"><div style="display:flex;justify-content:space-between"><b>Страх и жадность</b><b>${Math.round(g)} · ${lb}</b></div><div class="bar" style="height:10px;overflow:visible;background:linear-gradient(90deg,#FF5C7A,#FFB84D,#22D39A);margin-top:12px;position:relative"><i style="position:absolute;left:${g}%;width:4px;height:16px;top:-3px;background:#fff;border-radius:3px"></i></div></div>
+<div class="sec">Растут за 24ч</div><div class="card">${rw(s.slice(0,3))}</div>
+<div class="sec">Падают за 24ч</div><div class="card">${rw(s.slice(-3).reverse())}</div>
+<div class="sec">Сделки игроков · LIVE</div><div class="card" id="feed">${window.realFeedHTML?realFeedHTML(null,8):'<p class="mu">Загрузка…</p>'}</div>
+<div class="sec">Игроки онлайн</div>${window.realTradersHTML?realTradersHTML():'<div class="card"><p class="mu">Подключение…</p></div>'}`};
+const tradeX=()=>{const c=M[S.sel],mx=Math.max(...c.h),mn=Math.min(...c.h),vol=(hs(c.s)%900+100)/10;return `<div class="grid2" style="margin-top:12px"><div class="stat"><span class="mu">Макс.</span><b style="font-size:14px">$${fmt(mx,pd(mx))}</b></div><div class="stat"><span class="mu">Мин.</span><b style="font-size:14px">$${fmt(mn,pd(mn))}</b></div></div><div class="mu" style="margin:8px 2px">Объём 24ч: $${fmt(vol,1)} млн · 🟢 <span class="onl">${fmt(ONL,0)}</span> онлайн</div><div class="sec">Стакан заявок</div><div class="card" id="ob">${obH(c)}</div><div class="sec">Сделки трейдеров · ${c.s}</div><div class="card" id="feed">${(window.ORBIX_ONLINE&&ORBIX_ONLINE.isOn&&ORBIX_ONLINE.isOn()&&window.realFeedHTML)?realFeedHTML(c.s,15):feedRows(c.s)}</div>`};
+const _w=view;
+view=function(){const t=S.tab;if(t=='home')return _w()+homeX();if(t=='trade')return _w()+tradeX();if(t=='market')return _w().replace('8 монет',C.length+' монет');if(t=='send')return sendV();if(t=='user')return userV();if(t=='traders')return tradersV();if(t=='feed')return `<div class="top"><h2 class="hd" style="font-size:20px">Лента сделок</h2><span class="up">● LIVE</span></div><div class="card" id="feed">${window.realFeedHTML?realFeedHTML(null,50):'<p class="mu">Подключение…</p>'}</div>`;return _w()};
+
+
+/* ========== Android notifications ========== */
+(function(){
+  const DEF={trade:1,transfer:1,card:1,online:1,level:1,task:1,bigTrade:1,wallet:1,toast:1};
+  let NS=Object.assign({},DEF);
+  try{const s=JSON.parse(localStorage.getItem('orbix_ns')||'null');if(s&&typeof s==='object')NS=Object.assign({},DEF,s)}catch(e){}
+  function saveNS(){try{localStorage.setItem('orbix_ns',JSON.stringify(NS))}catch(e){}}
+  function hasAndroid(){return typeof AndroidAPI!=='undefined'&&AndroidAPI&&typeof AndroidAPI.showNotification==='function'}
+  function notify(key,title,msg,big){
+    if(key&&NS[key]===0)return;
+    try{
+      if(hasAndroid()){
+        if(big) AndroidAPI.showNotification(String(title),String(msg),String(big));
+        else AndroidAPI.showNotification(String(title),String(msg));
+      }
+    }catch(e){console.warn('notify',e)}
+    if(NS.toast!==0){try{if(typeof toast==='function')toast(String(title)+': '+String(msg))}catch(e){}}
+  }
+  window.ORBIX_NOTIFY = {
+    has: hasAndroid,
+    get: k=>NS[k]!==0,
+    set: (k,v)=>{NS[k]=v?1:0;saveNS()},
+    all: ()=>Object.assign({},NS),
+    send: (title,msg,big)=>notify(null,title,msg,big),
+    trade: (side,coin,usd)=>{
+      const t=side?'🟢 Покупка':'🔴 Продажа';
+      notify('trade',t, coin+' на $'+Number(usd).toFixed(2), 'Сделка исполнена · '+coin+' · $'+Number(usd).toFixed(2));
+    },
+    transferIn: (from,amt)=>notify('transfer','💸 Входящий перевод','+$'+Number(amt).toFixed(2)+' от '+from, from+' отправил тебе $'+Number(amt).toFixed(2)+' USDT'),
+    transferOut: (to,amt)=>notify('transfer','✅ Перевод отправлен','$'+Number(amt).toFixed(2)+' → '+to),
+    cardInterest: (add,total)=>notify('card','💳 Доход по карте','+$'+Number(add).toFixed(2)+' (+10%)','Баланс карты: $'+Number(total).toFixed(2)),
+    online: (n)=>notify('online','🟢 ORBIX онлайн', n>1?('Игроков в сети: '+n):'Ты в сети · жду других трейдеров'),
+    offline: ()=>notify('online','⚪ ORBIX','Соединение с сетью потеряно'),
+    level: (lv)=>notify('level','🎉 Новый уровень','Уровень '+lv),
+    task: (name,r)=>notify('task','🎯 Задание','«'+name+'» · +$'+r),
+    bigTrade: (name,side,coin,usd)=>notify('bigTrade',side?'🟢 Крупная покупка':'🔴 Крупная продажа', name+' · '+coin+' · $'+Number(usd).toFixed(0)),
+    withdraw: (amt)=>notify('wallet','💳 Вывод на карту','$'+Number(amt).toFixed(2)+' в обработке'),
+    deposit: (amt)=>notify('wallet','✅ На карту','Зачислено $'+Number(amt).toFixed(2))
+  };
+  window.onAndroidEvent = function(event, data){
+    if(event==='notificationResult'){
+      if(data&&data.error==='permission_denied'){
+        try{toast('Разреши уведомления в настройках Android')}catch(e){}
+      }
+    }
+  };
+})();
+
+/* ========== REAL ONLINE via Supabase Realtime (same as ZoneStrike) ========== */
+(function(){
+  const SUPABASE_URL='https://prtafkwvikkemjjvuxbs.supabase.co';
+  const SUPABASE_KEY='sb_publishable_Ka8MAqNMJGN7YrL1UhVA7w_97TC-xFT';
+  let sb=null, ch=null, onlineReady=false, onlineOn=false;
+  const myId = (()=>{try{let id=localStorage.getItem('orbix_id');if(!id){id=Math.random().toString(36).slice(2,12);localStorage.setItem('orbix_id',id)}return id}catch(e){return Math.random().toString(36).slice(2,12)}})();
+  window.ORBIX_ONLINE = {
+    myId,
+    players: {}, // id -> {n,c,fl,t,hold}
+    feed: [],    // live trades from real players
+    transfers: [],
+    isOn: ()=>onlineOn,
+    count: ()=>Object.keys(window.ORBIX_ONLINE.players).length,
+    list: ()=>Object.values(window.ORBIX_ONLINE.players).sort((a,b)=>b.c-a.c),
+    connect, disconnect, publishTrade, sendMoney, requestMoney
+  };
+  const O = window.ORBIX_ONLINE;
+
+  function safeName(n){return String(n||'Трейдер').replace(/[<>]/g,'').trim().slice(0,18)||'Трейдер'}
+  function toastOn(t){if(typeof toast==='function')toast(t)}
+
+  async function connect(){
+    if(onlineOn||!window.supabase){toastOn(!window.supabase?'Supabase не загрузился':'Уже в сети');return}
+    try{
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {realtime:{params:{eventsPerSecond:20}}});
+      ch = sb.channel('orbix-global', {config:{presence:{key:myId},broadcast:{self:true}}});
+      ch.on('presence',{event:'sync'},()=>{
+        const st=ch.presenceState();
+        const next={};
+        Object.keys(st).forEach(k=>{
+          const arr=st[k]; if(!arr||!arr.length)return;
+          const p=arr[0];
+          next[k]={id:k,n:safeName(p.n),c:+p.c||0,fl:p.fl||'🌐',t:p.t||Date.now(),hold:p.hold||{}};
+        });
+        O.players=next;
+        if(typeof render==='function' && !['INPUT','SELECT','TEXTAREA'].includes((document.activeElement||{}).tagName)) {
+          // soft update online counters without full re-render spam
+          document.querySelectorAll('.onl').forEach(e=>e.textContent=(O.count()||0).toLocaleString('ru-RU'));
+        }
+      });
+      ch.on('broadcast',{event:'trade'},({payload})=>{
+        if(!payload||payload.id===myId)return;
+        O.feed.unshift({t:Date.now(),u:{n:payload.n,fl:payload.fl},s:payload.s,b:!!payload.b,q:payload.q,usd:payload.usd,real:1});
+        if(O.feed.length>200)O.feed.length=200;
+        const f=$('#feed'); if(f) f.innerHTML = realFeedHTML(S.tab==='trade'?S.sel:null, S.tab==='home'?6:20);
+        if(payload.usd>500){toastOn((payload.b?'🟢':'🔴')+' '+payload.n+' '+(payload.b?'купил':'продал')+' '+payload.s+' на $'+Number(payload.usd).toFixed(0)); try{ORBIX_NOTIFY.bigTrade(payload.n,payload.b,payload.s,payload.usd)}catch(e){}}
+      });
+      ch.on('broadcast',{event:'transfer'},({payload})=>{
+        if(!payload)return;
+        if(payload.to===myId && payload.act==='send'){
+          // incoming money
+          S.cash = (S.cash||0) + (+payload.a||0);
+          S.inv = (S.inv||0) + (+payload.a||0);
+          S.hist = S.hist||[];
+          S.hist.unshift({t:Date.now(),x:'💸 Получено $'+Number(payload.a).toFixed(2)+' от '+payload.fromName});
+          if(typeof save==='function')save();
+          toastOn('💸 '+payload.fromName+' перевёл тебе $'+Number(payload.a).toFixed(2)); try{ORBIX_NOTIFY.transferIn(payload.fromName,payload.a)}catch(e){}
+          if(typeof render==='function')render();
+        }
+        if(payload.from===myId && payload.act==='ack'){
+          toastOn('✅ Перевод доставлен');
+        }
+      });
+      ch.on('broadcast',{event:'chat'},({payload})=>{
+        if(!payload||payload.id===myId)return;
+        toastOn('💬 '+payload.n+': '+String(payload.m||'').slice(0,80));
+      });
+      await new Promise((resolve,reject)=>{
+        ch.subscribe(async (status)=>{
+          if(status==='SUBSCRIBED'){
+            onlineOn=true;
+            await trackPresence();
+            resolve();
+          } else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT') reject(new Error(status));
+        });
+      });
+      onlineReady=true;
+      toastOn('🟢 Ты в сети · реальных трейдеров: '+O.count()); try{ORBIX_NOTIFY.online(O.count())}catch(e){}
+      if(typeof render==='function')render();
+      // periodic presence refresh (respect rate limit: max 5 / 30s)
+      setInterval(()=>{if(onlineOn)trackPresence()}, 12000);
+    }catch(e){
+      console.error(e);
+      onlineOn=false;
+      console.warn('orbix online',e); toastOn('Сеть: повтор через 5с'); setTimeout(()=>{try{connect()}catch(e){}},5000);
+    }
+  }
+
+  async function trackPresence(){
+    if(!ch||!onlineOn)return;
+    try{
+      const holdSummary={};
+      Object.entries(S.hold||{}).forEach(([k,h])=>{holdSummary[k]=+(h.q||0).toFixed(6)});
+      await ch.track({
+        n: safeName(S.name),
+        c: Math.floor(typeof tot==='function'?tot():(S.cash||0)),
+        fl: '🇷🇺',
+        t: Date.now(),
+        hold: holdSummary
+      });
+    }catch(e){}
+  }
+
+  async function disconnect(){
+    if(!ch)return;
+    try{await ch.untrack()}catch(e){}
+    try{await sb.removeChannel(ch)}catch(e){}
+    ch=null; onlineOn=false; O.players={};
+    toastOn('Отключён от сети');
+    if(typeof render==='function')render();
+  }
+
+  function publishTrade(s,b,q,usd){
+    if(!onlineOn||!ch)return;
+    ch.send({type:'broadcast',event:'trade',payload:{id:myId,n:safeName(S.name),fl:'🇷🇺',s,b,q:+q,usd:+usd,t:Date.now()}});
+  }
+
+  async function sendMoney(toId, toName, amount){
+    amount=Math.floor(+amount);
+    if(!onlineOn||!ch) return toastOn('Сначала войди в онлайн');
+    if(!(amount>=1)) return toastOn('Минимум $1');
+    if(amount>(S.cash||0)+1e-9) return toastOn('Недостаточно USDT');
+    if(!toId) return toastOn('Выбери получателя');
+    if(!confirm('Отправить $'+amount+' игроку '+toName+'?\n(реальный перевод внутри сети ORBIX)'))return;
+    S.cash-=amount; S.inv-=amount;
+    S.hist=S.hist||[]; S.hist.unshift({t:Date.now(),x:'Перевод $'+amount+' → '+toName});
+    if(typeof save==='function')save();
+    await ch.send({type:'broadcast',event:'transfer',payload:{act:'send',from:myId,fromName:safeName(S.name),to:toId,a:amount,t:Date.now()}});
+    toastOn('✅ Отправлено $'+amount); try{ORBIX_NOTIFY.transferOut(toName,amount)}catch(e){}
+    if(typeof render==='function')render();
+  }
+
+  function requestMoney(){}
+
+  // Replace fake feed with real+fallback
+  window.realFeedHTML = function(filter, n=15){
+    const rows = O.feed.filter(e=>!filter||e.s===filter).slice(0,n);
+    if(!rows.length){
+      return '<p class="mu" style="padding:8px 0">Пока нет сделок. Купи или продай монету — сделка появится у всех в сети.</p>';
+    }
+    return rows.map(e=>{
+      const avHtml = (typeof av==='function') ? av(e.u.n,34) : '<span class="ic" style="background:#333">👤</span>';
+      return `<div class="row" style="padding:8px 0"><span>${avHtml}</span><div class="g"><b style="font-size:14px">${e.u.n} ${e.u.fl||''} <span class="up" style="font-size:10px">●</span></b><small>${new Date(e.t).toLocaleTimeString('ru-RU')}</small></div><div class="r"><b class="${e.b?'up':'dn'}" style="font-size:13px">${e.b?'Купил':'Продал'} ${(e.q<1?e.q.toFixed(4):e.q.toFixed(2))} ${e.s}</b><small>$${Number(e.usd).toFixed(2)}</small></div></div>`;
+    }).join('');
+  };
+
+  window.realTradersHTML = function(){
+    const L=O.list();
+    if(!onlineOn) return '<div class="card"><p class="mu">🔄 Подключение к сети…</p></div>';
+    if(!L.length) return '<div class="card"><p class="mu">Пока ты один. Открой эту страницу с другого устройства или позови друга — он появится здесь.</p></div>';
+    return `<div class="card">${L.map((u,i)=>`<div class="row" onclick="S.toId='${u.id}';S.to='${u.n.replace(/'/g,"\\'")}';go('send')"><b style="width:26px">${i+1}</b>${typeof av==='function'?av(u.n,38):''}<div class="g"><b>${u.n} ${u.fl||''}</b><small class="up">● онлайн · UID ${u.id.slice(0,6)}</small></div><b>$${Number(u.c).toLocaleString('ru-RU',{maximumFractionDigits:0})}</b></div>`).join('')}</div>`;
+  };
+
+  // Hook into existing exec after trade
+  const _exec = window.exec;
+  // Will be bound after functions defined
+  window.__orbixOnlineHook = function(){
+    // patch exec
+    if(typeof exec==='function'){
+      const orig=exec;
+      window.exec=function(){
+        const side=S.side, sel=S.sel, amt=parseFloat(S.amt);
+        orig.apply(this,arguments);
+        if(onlineOn && amt>0 && M[sel]){
+          const q = side==='b' ? (amt*0.999/M[sel].p) : Math.min((S.hold[sel]?S.hold[sel].q:0), amt/M[sel].p);
+          publishTrade(sel, side==='b', q, amt);
+          trackPresence();
+          try{ORBIX_NOTIFY.trade(side==='b', sel, amt)}catch(e){}
+        }
+      };
+    }
+  };
+})();
+
+try{window.__orbixOnlineHook&&window.__orbixOnlineHook()}catch(e){}
+render();
+// Always online + card interest +10%/min
+setTimeout(()=>{try{if(window.ORBIX_ONLINE&&ORBIX_ONLINE.connect)ORBIX_ONLINE.connect()}catch(e){console.warn(e)}},600);
+setTimeout(()=>{try{if(window.ORBIX_ONLINE&&!ORBIX_ONLINE.isOn())ORBIX_ONLINE.connect()}catch(e){}},4000);
+setInterval(()=>{
+  try{
+    if(S.card>0){
+      const add=S.card*0.10;
+      S.card=S.card+add;
+      if(typeof save==='function')save();
+      if(S.tab==='prof'||S.tab==='wd'||S.tab==='port'||S.tab==='home'){
+        if(!['INPUT','SELECT','TEXTAREA'].includes((document.activeElement||{}).tagName)) render();
+      }
+      if(typeof toast==='function') toast('💳 Карта: +$'+add.toFixed(2)+' (+10%)'); try{ORBIX_NOTIFY.cardInterest(add,S.card)}catch(e){}
+    }
+  }catch(e){}
+},60000);
+</script></body></html>
